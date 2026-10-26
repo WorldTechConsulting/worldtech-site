@@ -97,6 +97,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const contactSubmitBtn = contactForm ? contactForm.querySelector('button[type="submit"]') : null;
   const contactFormNote = document.getElementById('contactFormNote');
   const SUBMIT_LABEL = contactSubmitBtn ? contactSubmitBtn.textContent : '';
+  const PAGE_LOADED_AT = Date.now();
+  let lastSendAt = 0;
+  let sendCount = 0;
 
   function showFormNote(message, ok) {
     if (!contactFormNote) return;
@@ -136,13 +139,26 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
 
+      // Anti-spam : formulaire rempli trop vite (robot) ou envois trop rapprochés
+      const maintenant = Date.now();
+      if (maintenant - PAGE_LOADED_AT < 3000) {
+        showFormNote('Merci de patienter quelques secondes avant d\u2019envoyer.', false);
+        return;
+      }
+      if (maintenant - lastSendAt < 60000 || sendCount >= 5) {
+        showFormNote('Votre message a déjà été envoyé. Pour une autre demande, patientez une minute ou appelez-nous au +509 5622-2772.', false);
+        return;
+      }
+
       const f = contactForm.elements;
       const heure = new Date().getHours();
-      const nom = f.nom.value.trim();
-      const courriel = f.email.value.trim();
-      const entreprise = f.entreprise.value.trim() || '—';
-      const sujet = f.sujet.value.trim() || 'Demande de contact';
-      const texte = f.message.value.trim();
+      // Une seule ligne, sans caractères de contrôle (évite l'injection d'en-têtes dans les emails)
+      const uneLigne = function (v, max) { return String(v).replace(/[\u0000-\u001F\u007F<>]+/g, ' ').trim().slice(0, max); };
+      const nom = uneLigne(f.nom.value, 80);
+      const courriel = uneLigne(f.email.value, 120);
+      const entreprise = uneLigne(f.entreprise.value, 100) || '—';
+      const sujet = uneLigne(f.sujet.value, 120) || 'Demande de contact';
+      const texte = f.message.value.replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, '').trim().slice(0, 2000);
       const params = {
         // Variables du modèle EmailJS standard « Contact Us »
         name:    nom,
@@ -167,6 +183,7 @@ document.addEventListener('DOMContentLoaded', () => {
           if (EMAILJS_CONFIG.autoReplyId) {
             emailjsSend(EMAILJS_CONFIG.autoReplyId, params).catch(function (err) { console.warn(err); });
           }
+          lastSendAt = Date.now(); sendCount += 1;
           contactForm.reset(); contactForm.classList.remove('was-validated');
           showFormNote('Message envoyé — merci, nous vous répondons bientôt.', true);
         })

@@ -12,7 +12,7 @@
   le HTML correspondant : le JavaScript est déjà chargé.
 
 ## Pages solutions (menu Services)
-- `#securite` : sécurité électronique, complétée avec les sites sensibles (Rapiscan, Thruvision, Rohde & Schwarz, Intellicene), FAQ, démarche.
+- `#securite` : sécurité électronique, complétée avec les sites sensibles (Rapiscan, Thruvision, Rohde & Schwarz, Intelligence), FAQ, démarche.
 - `#aeroport` : solutions aéroportuaires (14 solutions par domaine).
 - `#finance` : institutions financières (traceurs 3SI, encre anti-vol, Edge360 Surveill, FAQ).
 - Les solutions et la FAQ utilisent l'accordéon Bootstrap (`accordion`), les tableaux utilisent `table`.
